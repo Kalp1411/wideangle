@@ -58,7 +58,7 @@ function Footer() {
             {/* Brand column */}
             <div className="footer-brand-col">
               <Link href="/" className="footer-logo-link">
-                <img src="assets/img/logo/logo.png" alt="WideAngle" className="footer-logo-img" />
+                <img src="/assets/img/logo/logo.png" alt="WideAngle" className="footer-logo-img" />
               </Link>
               <p className="footer-tagline">
                 Wide Angle Movies delivers a seamless entertainment experience with the latest films, exclusive offers, and a user-friendly platform designed for movie lovers.

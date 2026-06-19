@@ -201,10 +201,16 @@ const LoyaltyProgram = () => {
                         </div>
 
                         <div className="bc-note">
-                          <strong>
-                            ₹{remainingAmount.toFixed(0)}
-                          </strong>{" "}
-                          more to reach {nextTier} tier
+                          {remainingAmount.toFixed(0) == 0 ? (
+                            <strong>You have reached its final stage</strong>
+                          ) : (
+                            <>
+                              <strong>
+                                ₹{remainingAmount.toFixed(0)}
+                              </strong>{" "}
+                              more to reach {nextTier} tier
+                            </>
+                          )}
                         </div>
 
                         <div className="bc-progress">
@@ -289,9 +295,15 @@ const LoyaltyProgram = () => {
                           </div>
 
                           <div className="tier-h-note">
-                            {progressPercentage.toFixed(0)}%
-                            to {nextTier} — ₹
-                            {remainingAmount.toFixed(0)} remaining
+                            {remainingAmount.toFixed(0) == 0 ? (
+                              <strong>You have reached its final stage</strong>
+                            ) : (
+                              <>
+                                {progressPercentage.toFixed(0)}%
+                                to {nextTier} — ₹
+                                {remainingAmount.toFixed(0)} remaining
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>

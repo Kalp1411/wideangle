@@ -40,6 +40,7 @@ function Upcoming() {
         "/placeholder.jpg",
       duration: formatDuration(movie.totalduration),
       rating: movie.rating,
+      slug:movie.slug,
       language: movie.language?.map((l) => l.language_name).join(", "),
       quality: movie.movie_type?.map((t) => t.type_name).join(", "),
     }));
@@ -127,16 +128,16 @@ function Upcoming() {
                   >
                     <div className="movie-item mb-60">
                       <div className="movie-poster">
-                        <Link href="#">
+                        <Link href={`/movie/${movie.slug}`}>
                           <img src={movie.thumbnail} alt={movie.title} />
                         </Link>
                       </div>
                       <div className="movie-content">
                         <div className="top">
                           <h5 className="title">
-                            <Link href="#">{movie.title}</Link>
+                            <Link href={`/movie/${movie.slug}`}>{movie.title}</Link>
                           </h5>
-                          <Link href="#" className="btn">
+                          <Link href={`/movie/${movie.slug}`} className="btn">
                             <span className="date">Book Now</span>
                           </Link>
                         </div>

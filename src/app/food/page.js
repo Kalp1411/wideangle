@@ -96,7 +96,7 @@ export default function FoodOrderingPage() {
   };
 
   const foodTotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-  const ticketPrice = holdTicket?.ticket_summary?.total_ticket_price || 0;
+  const ticketPrice = holdTicket?.ticket_summary?.total_ticket_payable || 0;
   const convenienceFee = holdTicket?.ticket_summary?.convenience_fee || 0;
 
   // const handleOpenAuth = (e) => {

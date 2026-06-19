@@ -49,6 +49,7 @@ function NowStreaming() {
         "/placeholder.jpg",
       duration: formatDuration(movie.totalduration),
       rating: movie.rating,
+      slug: movie.slug,
       language: movie.language?.map((l) => l.language_name).join(", "),
       quality: movie.movie_type?.map((t) => t.type_name).join(", "),
     }));
@@ -178,19 +179,19 @@ function NowStreaming() {
                         <SwiperSlide key={`${activeTab}-${item.id}`}>
                           <div className="movie-item mb-50">
                             <div className="movie-poster">
-                              <Link href={`/movieDetails/${item.id}`}>
+                              <Link href={`/movie/${item.slug}`}>
                                 <img src={item.thumbnail} alt={item.title} />
                               </Link>
                             </div>
                             <div className="movie-content">
                               <div className="top">
                                 <h5 className="title">
-                                  <Link href={`/movieDetails/${item.id}`}>
+                                  <Link href={`/movie/${item.slug}`}>
                                     {item.title}
                                   </Link>
                                 </h5>
                                 <Link
-                                  href={`/movieDetails/${item.id}`}
+                                  href={`/movie/${item.slug}`}
                                   className="btn">
                                   <span className="date">Book Now</span>
                                 </Link>

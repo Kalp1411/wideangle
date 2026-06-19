@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Script from "next/script";
-import { streamingItems } from "@/data/streamingItems";
+
 import React, { useMemo, useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation"; // Needed to get the ID
 import ModalVideo from "react-modal-video";
@@ -26,6 +26,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchAvailableShowtimes,
+  fetchMovies,
   fetchSeatOfShowtime,
   fetchSingleMovieDetail,
 } from "@/store/movieSlice";
@@ -42,7 +43,7 @@ export default function MovieDetails() {
   const dispatch = useDispatch();
   const router = useRouter();
 
-  const { singleMovieDetail, loading } = useSelector((state) => state.movies);
+  const { singleMovieDetail, nowstreamingmovies, loading } = useSelector((state) => state.movies);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [requiredSeats, setRequiredSeats] = useState(0);
@@ -61,6 +62,8 @@ export default function MovieDetails() {
   };
 
   const [isOpen, setOpen] = useState(false);
+  const [recIsBeginning, setRecIsBeginning] = useState(true);
+  const [recIsEnd, setRecIsEnd] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null); // Track active date
   const [showSticky, setShowSticky] = useState(false);
   const [selectedTime, setSelectedTime] = useState(null);
@@ -91,6 +94,12 @@ export default function MovieDetails() {
       dispatch(fetchSingleMovieDetail(slug));
     }
   }, [slug]);
+
+  useEffect(() => {
+    if (!nowstreamingmovies?.length) {
+      dispatch(fetchMovies({ is_now_streaming: 1 }));
+    }
+  }, []);
 
   const makePayment = async () => {
     try {
@@ -132,10 +141,10 @@ export default function MovieDetails() {
   };
 
   const recommendations = useMemo(() => {
-    return streamingItems.Items.filter(
-      (item) => item.id !== Number(slug),
-    ).slice(0, 10);
-  }, [slug]);
+    return nowstreamingmovies
+      .filter((m) => m.slug !== slug)
+      .slice(0, 10);
+  }, [nowstreamingmovies, slug]);
 
   // 2. Scroll Listener for Sticky Bar
   useEffect(() => {
@@ -262,14 +271,14 @@ export default function MovieDetails() {
             sgst_service_percentage: cls.sgst_service_percentage,
             cgst_service_amount: cls.cgst_service_amount,
             sgst_service_amount: cls.sgst_service_amount,
-            cgst_rebate_amount: seat.cgst_rebate_amount ?? 0,
-            sgst_rebate_amount: seat.sgst_rebate_amount ?? 0,
-            cgst_service_rebate_amount: seat.cgst_service_rebate_amount ?? 0,
-            sgst_service_rebate_amount: seat.sgst_service_rebate_amount ?? 0,
-            glass_3d_charge: seat.glass_3d_charge ?? 0,
-            glass_3d_admit_amount: seat.glass_3d_admit_amount ?? 0,
-            cgst_glass_amount: seat.cgst_glass_amount ?? 0,
-            sgst_glass_amount: seat.sgst_glass_amount ?? 0,
+            cgst_rebate_amount: cls.cgst_rebate_amount ?? 0,
+            sgst_rebate_amount: cls.sgst_rebate_amount ?? 0,
+            cgst_service_rebate_amount: cls.cgst_service_rebate_amount ?? 0,
+            sgst_service_rebate_amount: cls.sgst_service_rebate_amount ?? 0,
+            glass_3d_charge: cls.glass_3d_charge ?? 0,
+            glass_3d_admit_amount: cls.glass_3d_admit_amount ?? 0,
+            cgst_glass_amount: cls.cgst_glass_amount ?? 0,
+            sgst_glass_amount: cls.sgst_glass_amount ?? 0,
           })),
         });
       });
@@ -277,8 +286,7 @@ export default function MovieDetails() {
       if (classIdx < apiData.classes.length - 1) {
         result.push({ label: "-", isAisle: true });
       }
-    });
-
+    });    
     return result;
   }
 
@@ -489,6 +497,7 @@ export default function MovieDetails() {
   };
 
   const handleProceedBooking = async (data) => {
+    
     const seats = [];
     data.seats.forEach((seat) => {
       
@@ -517,7 +526,10 @@ export default function MovieDetails() {
       screen_assign_id: selectedTime,
       seats,
     };
+    // console.log('dataToSubmit',dataToSubmit);
+    // return;
     
+       
 
     try {
       const res = await dispatch(holdBoxOfficeTicket(dataToSubmit));
@@ -548,7 +560,12 @@ export default function MovieDetails() {
       <ModalVideo
         channel="youtube"
         isOpen={isOpen}
-        videoId={singleMovieDetail?.trailer_url}
+        videoId={(() => {
+          const url = singleMovieDetail?.trailer_url;
+          if (!url) return "";
+          const match = url.match(/(?:v=|youtu\.be\/|embed\/)([^&?/]+)/);
+          return match ? match[1] : url;
+        })()}
         onClose={() => setOpen(false)}
       />
 
@@ -762,12 +779,12 @@ export default function MovieDetails() {
                   <Link href={`#booktickets`} className="btn mt-3">
                     Book Tickets
                   </Link>
-                  <button
+                  {/* <button
                     onClick={() => setIsDetailsOpen(true)}
                     className="btn ml-3 mt-3"
                   >
                     View Details
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </div>
@@ -1099,12 +1116,16 @@ export default function MovieDetails() {
             </div>
             <div className="col-md-4 text-md-end">
               <div className="custom-swiper-nav d-flex gap-2 justify-content-md-end">
-                <button className="rec-prev nav-btn-circle">
-                  <FaChevronLeft />
-                </button>
-                <button className="rec-next nav-btn-circle">
-                  <FaChevronRight />
-                </button>
+                {!recIsBeginning && (
+                  <button className="rec-prev nav-btn-circle">
+                    <FaChevronLeft />
+                  </button>
+                )}
+                {!recIsEnd && (
+                  <button className="rec-next nav-btn-circle">
+                    <FaChevronRight />
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -1117,6 +1138,14 @@ export default function MovieDetails() {
                 prevEl: ".rec-prev",
                 nextEl: ".rec-next",
               }}
+              onSwiper={(swiper) => {
+                setRecIsBeginning(swiper.isBeginning);
+                setRecIsEnd(swiper.isEnd);
+              }}
+              onSlideChange={(swiper) => {
+                setRecIsBeginning(swiper.isBeginning);
+                setRecIsEnd(swiper.isEnd);
+              }}
               breakpoints={{
                 480: { slidesPerView: 2 },
                 768: { slidesPerView: 3 },
@@ -1127,8 +1156,15 @@ export default function MovieDetails() {
                 <SwiperSlide key={item.id}>
                   <div className="movie-card-creative">
                     <div className="movie-poster">
-                      <Link href={`/movieDetails/${item.id}`}>
-                        <img src={`/${item.thumbnail}`} alt={item.title} />
+                      <Link href={`/movie/${item.slug}`}>
+                        <img
+                          src={
+                            item.image?.thumbnail?.["317x422"] ||
+                            item.image?.original ||
+                            "/assets/img/poster/placeholder.webp"
+                          }
+                          alt={item.movie_name}
+                        />
                       </Link>
                       <div className="poster-overlay">
                         <Link
@@ -1147,16 +1183,13 @@ export default function MovieDetails() {
                       <div className="top">
                         <h5 className="title mb-0">
                           <Link
-                            href={`/movieDetails/${item.id}`}
+                            href={`/movie/${item.slug}`}
                             className="text-white text-decoration-none"
                           >
-                            {item.title}
+                            {item.movie_name}
                           </Link>
                         </h5>
-                        <Link
-                          href={`/movieDetails/${item.id}`}
-                          className="btn btn-sm"
-                        >
+                        <Link href={`/movie/${item.slug}`} className="btn btn-sm">
                           <span className="year" style={{ color: "#e2d191" }}>
                             Book Now
                           </span>
@@ -1164,22 +1197,25 @@ export default function MovieDetails() {
                       </div>
                       <div
                         className="bottom"
-                        style={{ fontSize: "12px", color: "#5b616e" }}
-                      >
+                        style={{ fontSize: "12px", color: "#5b616e" }}>
                         <ul>
                           <li>
-                            <span className="quality">{item.quality}</span>
+                            <span className="quality">
+                              {item.movie_type?.map((t) => t.type_name).join(", ")}
+                            </span>
                           </li>
                           <li className="gap-4">
-                            <span className="language">{item.language}</span>
+                            <span className="language">
+                              {item.language?.map((l) => l.language_name).join(", ")}
+                            </span>
                             <span className="duration d-flex align-items-center gap-1">
                               <FaClock size={14} fill="#F28C28" />{" "}
-                              {item.minitus}
+                              {item.totalduration ? formatDuration(item.totalduration) : ""}
                             </span>
-                            <span className="rating d-flex align-items-center gap-1">
+                            {/* <span className="rating d-flex align-items-center gap-1">
                               <FaThumbsUp size={14} fill="#F28C28" />{" "}
-                              {item.like}
-                            </span>
+                              {item.rating?.name}
+                            </span> */}
                           </li>
                         </ul>
                       </div>

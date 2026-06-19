@@ -39,6 +39,8 @@ export const updateUserProfile = createAsyncThunk(
       const res = await authService.ApiForUpdateUserProfile(userData);
       return res.data;
     } catch (error) {
+      console.log('auth errro',error);
+      
       return rejectWithValue(
         error.response?.data?.message || error.message
       );

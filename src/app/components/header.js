@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navLinks } from "@/data/navLink";
-import { FaAngleDown, FaTimes, FaBars } from "react-icons/fa";
+import { FaAngleDown, FaTimes, FaBars, FaMapMarkerAlt, FaChevronDown } from "react-icons/fa";
 import { openAuthPopUp } from "@/store/authSlice";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useAuth } from "@/hooks/useAuth";
 import { useSetting } from "@/hooks/useSetting";
 import Image from "next/image";
@@ -33,6 +33,19 @@ function Header() {
 
   const [isActive, setIsActive] = useState(false);
   const [openSubMenu, setOpenSubMenu] = useState(null);
+  const [selectedCity, setSelectedCity] = useState("Ahmedabad");
+  const [cityOpen, setCityOpen] = useState(false);
+  const cityRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (cityRef.current && !cityRef.current.contains(e.target)) {
+        setCityOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleToggle = () => {
     setIsActive(!isActive);
@@ -46,14 +59,16 @@ function Header() {
   const handleSubMenu = (index) => {
     setOpenSubMenu(openSubMenu === index ? null : index);
   };
+  
+  const handleCityChange = (city) => {
+    alert(city)
+    setSelectedCity(city); setCityOpen(false);
+  };
 
   return (
     <>
       <header>
-        <div
-          id="sticky-header"
-          className={`menu-area transparent-header ${sticky ? "sticky-menu" : ""}`}
-        >
+        <div id="sticky-header" className={`menu-area transparent-header ${sticky ? "sticky-menu" : ""}`}>
           <div className="container custom-container">
             <div className="row">
               <div className="col-12">
@@ -105,16 +120,80 @@ function Header() {
                     </div>
                     <div className="header-action d-none d-md-block">
                       <ul>
-                        <li className="header-lang">
-                          <form action="#">
-                            <div className="icon">
-                              <i className="fas fa-globe-asia"></i>
+                        <li className="header-lang" ref={cityRef} style={{ position: "relative" }}>
+                          <button
+                            onClick={() => setCityOpen(!cityOpen)}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              background: cityOpen ? "rgba(242,140,40,0.12)" : "rgba(255,255,255,0.07)",
+                              border: "1px solid",
+                              borderColor: cityOpen ? "rgba(242,140,40,0.5)" : "rgba(255,255,255,0.15)",
+                              borderRadius: "999px",
+                              padding: "7px 14px",
+                              cursor: "pointer",
+                              color: "#fff",
+                              fontSize: "13px",
+                              fontWeight: 500,
+                              transition: "all 0.2s ease",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            <FaMapMarkerAlt style={{ color: "#f28c28", fontSize: "12px", flexShrink: 0 }} />
+                            <span>{selectedCity}</span>
+                            <FaChevronDown
+                              style={{
+                                fontSize: "10px",
+                                opacity: 0.7,
+                                transform: cityOpen ? "rotate(180deg)" : "rotate(0deg)",
+                                transition: "transform 0.2s ease",
+                              }}
+                            />
+                          </button>
+
+                          {cityOpen && (
+                            <div style={{
+                              position: "absolute",
+                              top: "calc(100% + 8px)",
+                              left: "50%",
+                              transform: "translateX(-50%)",
+                              background: "#1a1a2e",
+                              border: "1px solid rgba(255,255,255,0.1)",
+                              borderRadius: "12px",
+                              boxShadow: "0 12px 32px rgba(0,0,0,0.45)",
+                              minWidth: "140px",
+                              overflow: "hidden",
+                              zIndex: 999,
+                            }}>
+                              {["Ahmedabad", "Mehsana"].map((city) => (
+                                <button
+                                  key={city}
+                                  onClick={() => handleCityChange(city)}
+                                  style={{
+                                    width: "100%",
+                                    textAlign: "left",
+                                    padding: "10px 16px",
+                                    fontSize: "13px",
+                                    fontWeight: selectedCity === city ? 600 : 400,
+                                    color: selectedCity === city ? "#f28c28" : "rgba(255,255,255,0.8)",
+                                    background: selectedCity === city ? "rgba(242,140,40,0.12)" : "transparent",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "8px",
+                                    transition: "background 0.15s ease",
+                                  }}
+                                  onMouseEnter={e => { if (selectedCity !== city) e.currentTarget.style.background = "rgba(255,255,255,0.07)"; }}
+                                  onMouseLeave={e => { if (selectedCity !== city) e.currentTarget.style.background = "transparent"; }}
+                                >
+                                  <FaMapMarkerAlt style={{ fontSize: "10px", color: selectedCity === city ? "#f28c28" : "rgba(255,255,255,0.4)" }} />
+                                  {city}
+                                </button>
+                              ))}
                             </div>
-                            <select id="lang-dropdown" defaultValue="">
-                              <option value="">Ahmedabad</option>
-                              <option value="">Mehsana</option>
-                            </select>
-                          </form>
+                          )}
                         </li>
                         <li className="header-btn">
                           {user ? (

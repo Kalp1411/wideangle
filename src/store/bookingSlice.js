@@ -27,6 +27,18 @@ export const apiForCheckEligibleOffers = createAsyncThunk(
   }
 );
 
+export const getAvailablePerks = createAsyncThunk(
+  "bookings/getAvailablePerks",
+  async (data, { rejectWithValue }) => {    
+    try {
+      const res = await bookingService.apiForGetAvailablePerks(data);
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
 export const bookingFoodAndTicket = createAsyncThunk(
   "bookings/bookingFoodAndTicket",
   async (data, { rejectWithValue }) => {    

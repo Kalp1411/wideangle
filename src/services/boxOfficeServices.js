@@ -42,3 +42,26 @@ export const getSingleBookedTicketsApi = async (id) => {
     throw new Error(error || "Unable to fetch booked ticket. Please try again later.");
   }
 };
+
+export const apiForDownloadBookedTicket = async (id) => {
+  try {
+    const response = await privateApi.get(`download-ticket/${id}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error || "Unable to fetch download ticket. Please try again later.");
+  }
+};
+
+export const fetchBookedTicketFileDownload = async (id) => {
+  try {
+    const response = await privateApi.get(`download-ticket/${id}`, {
+      responseType: "arraybuffer",
+      headers: {
+        Accept: "application/pdf",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

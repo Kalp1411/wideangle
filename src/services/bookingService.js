@@ -29,6 +29,17 @@ export const ApiForGetCheckoutSessionSummary = async (id) => {
     }
   };
 
+  export const apiForGetAvailablePerks = async (data) => {
+    try {
+      console.log('data',data);
+      
+        const response = await privateApi.post(`get-available-purchased-perks`,data);
+        return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   export const apiForBookingFoodAndTicket = async (data) => {
     try {      
         const response = await privateApi.post(`checkout-ticket-food-booking`,data);

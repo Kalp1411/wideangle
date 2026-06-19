@@ -28,6 +28,7 @@ export default function AuthPopup() {
   const [timer, setTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
   const otpRefs = useRef([]);
+  const verifyingRef = useRef(false);
 
   useEffect(() => {
     if (step !== 'otp') return;
@@ -119,13 +120,18 @@ export default function AuthPopup() {
   };
 
   const verifyOtp = async (code) => {
+    if (!code || code.length !== 6) return;
+    if (verifyingRef.current) return;
     if (!window.confirmationResult) {
       toast.error('Session expired. Please resend OTP.');
       return;
     }
+    verifyingRef.current = true;
+    setError('');
     try {
       setLoading(true);
       const res = await window.confirmationResult.confirm(code);
+      if (!res?.user) throw new Error('OTP verification failed. Please try again.');
       const token = await res.user.getIdToken();
 
       const loginRes = await dispatch(loginWithMobile({
@@ -148,6 +154,8 @@ export default function AuthPopup() {
         setTimeout(() => otpRefs.current[0]?.focus(), 50);
       }
     } catch (err) {
+      console.log('errrrrr',err);
+      
       let message = 'Something went wrong. Try again.';
       switch (err.code) {
         case 'auth/invalid-verification-code': message = 'Invalid OTP. Please check and try again.'; break;
@@ -163,6 +171,7 @@ export default function AuthPopup() {
       setTimeout(() => otpRefs.current[0]?.focus(), 50);
     } finally {
       setLoading(false);
+      verifyingRef.current = false;
     }
   };
 
@@ -329,8 +338,7 @@ export default function AuthPopup() {
               <button
                 className="ap-btn"
                 onClick={() => verifyOtp(otp.join(''))}
-                disabled={otp.join('').length < 6 || loading}
-              >
+                disabled={otp.join('').length < 6 || loading}>
                 {loading ? <span className="ap-spinner" /> : 'Verify & Proceed'}
               </button>
             </div>

@@ -78,6 +78,18 @@ export const getSingleBookedTicket = createAsyncThunk(
   }
 );
 
+export const downloadBookedTicket = createAsyncThunk(
+  "boxoffice/downloadBookedTicket",
+  async (id, { rejectWithValue }) => {
+    try {            
+      const res = await boxOfficeService.apiForDownloadBookedTicket(id);
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
 const boxOfficeSlice = createSlice({
   name: "boxoffice",
   initialState,

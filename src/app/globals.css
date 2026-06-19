@@ -2109,6 +2109,142 @@ body {
     position: relative;
     overflow: hidden;
 }
+/* AuthPopup — keyframes */
+@keyframes ap-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes ap-zoom-in {
+    from { opacity: 0; transform: scale(0.88); }
+    to   { opacity: 1; transform: scale(1); }
+}
+@keyframes ap-slide-up {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ap-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* AuthPopup — interactive states */
+.ap-input:hover  { border-color: rgba(255, 255, 255, 0.14); }
+.ap-input:focus  { border-color: rgba(212, 160, 23, 0.55); background: rgba(0, 0, 0, 0.55); }
+
+.ap-close-btn:hover { background: rgba(255, 255, 255, 0.1); color: #f0e6cc; border-color: rgba(255, 255, 255, 0.15); }
+
+.ap-btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(212, 160, 23, 0.28); }
+.ap-btn:active:not(:disabled) { transform: translateY(0); }
+
+/* AuthPopup — back button */
+.ap-back-btn {
+    position: absolute;
+    top: 1.25rem;
+    left: 1.25rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #666;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    z-index: 1;
+}
+.ap-back-btn:hover { background: rgba(255, 255, 255, 0.1); color: #f0e6cc; border-color: rgba(255, 255, 255, 0.15); }
+
+/* AuthPopup — divider */
+.ap-divider {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    margin: 1.5rem 0;
+}
+
+/* AuthPopup — OTP grid */
+.ap-otp-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+.ap-otp-box {
+    aspect-ratio: 1;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1.5px solid rgba(255, 255, 255, 0.08);
+    border-radius: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #f0e6cc;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    caret-color: #d4a017;
+    -webkit-appearance: none;
+    padding: 0;
+}
+.ap-otp-box:focus {
+    border-color: rgba(212, 160, 23, 0.7);
+    background: rgba(212, 160, 23, 0.05);
+    box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.12);
+}
+.ap-otp-box.filled {
+    border-color: rgba(212, 160, 23, 0.45);
+    background: rgba(212, 160, 23, 0.07);
+}
+
+/* AuthPopup — error */
+.ap-error {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    color: #e05252;
+    text-align: center;
+    margin-bottom: 0.75rem;
+    animation: ap-slide-up 0.2s ease forwards;
+}
+
+/* AuthPopup — resend timer */
+.ap-timer-text {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    color: #555;
+    text-align: center;
+    margin-bottom: 1.25rem;
+}
+.ap-resend-btn {
+    background: none;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    color: #d4a017;
+    cursor: pointer;
+    padding: 0;
+    transition: opacity 0.2s;
+    letter-spacing: 0.02em;
+}
+.ap-resend-btn:hover { opacity: 0.75; }
+
+/* AuthPopup — spinner */
+.ap-spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(17, 17, 17, 0.3);
+    border-top-color: #111;
+    border-radius: 50%;
+    animation: ap-spin 0.7s linear infinite;
+}
+
+/* AuthPopup — success */
+.ap-success-content { text-align: center; }
+.ap-icon-wrap.success {
+    background: linear-gradient(135deg, #1d9e75, #25c18e);
+    box-shadow: 0 8px 24px rgba(29, 158, 117, 0.3);
+}
+
 /* ═══════════════════════════════════════════════════════════
    Payment / Checkout Page
 ═══════════════════════════════════════════════════════════ */

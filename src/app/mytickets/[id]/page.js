@@ -12,11 +12,12 @@ import {
   FaUser,
 } from "react-icons/fa";
 import { useDispatch } from "react-redux";
-import { getSingleBookedTicket } from "@/store/boxOfficeSlice";
+import { downloadBookedTicket, getSingleBookedTicket } from "@/store/boxOfficeSlice";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
 import { useLogoutConfirm } from "@/app/components/LogoutConfirmModal";
+import { fetchBookedTicketFileDownload } from "@/services/boxOfficeServices";
 
 const formatTime = (t) => {
   const [h, m] = t.split(":");
@@ -54,6 +55,7 @@ const TicketDetailPage = () => {
   const dispatch = useDispatch();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
   const showLogoutConfirm = useLogoutConfirm();
 
   useEffect(() => {
@@ -96,6 +98,25 @@ const TicketDetailPage = () => {
     (sum, fb) => sum + fb.total_price,
     0,
   );
+
+  const handleDownloadTicket = async () => {
+    try {
+      setIsDownloading(true);
+      const pdfBlob = await fetchBookedTicketFileDownload(id);
+      const url = window.URL.createObjectURL(new Blob([pdfBlob], { type: "application/pdf" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `ticket_${booking?.booking_code}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Something went wrong while generating the ticket. Please try again.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   return (
     <>
@@ -206,7 +227,32 @@ const TicketDetailPage = () => {
             <div className="col-xl-9 col-lg-9 col-md-12 dashboard__content_box">
               {/* Booking Summary */}
               <div className="dashboard__content__wraper p-4 mt-2 mb-4">
-                <h4 className="mb-4">Booking Summary</h4>
+                <div className="d-flex align-items-center justify-content-between mb-4">
+                  <h4 className="mb-0">Booking Summary</h4>
+                  <button
+                    onClick={handleDownloadTicket}
+                    disabled={isDownloading}
+                    className="d-flex align-items-center gap-2"
+                    style={{
+                      background: isDownloading
+                        ? "#555"
+                        : "linear-gradient(135deg, #ff6b35, #f7931e)",
+                      border: "none",
+                      borderRadius: "8px",
+                      color: "#fff",
+                      fontSize: "13px",
+                      fontWeight: "600",
+                      padding: "8px 16px",
+                      cursor: isDownloading ? "not-allowed" : "pointer",
+                      letterSpacing: "0.3px",
+                      opacity: isDownloading ? 0.7 : 1,
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <FaTicketAlt size={13} />
+                    {isDownloading ? "Downloading..." : "Download Ticket"}
+                  </button>
+                </div>
                 <div className="row g-3">
                   <div className="col-md-8">
                     <div className="row g-2 text-sm">
@@ -273,35 +319,93 @@ const TicketDetailPage = () => {
 
                     {/* Price Breakdown */}
                     <div className="mt-4 border-t border-white/10 pt-3">
-                      <p className="text-gray-400 text-[11px] uppercase tracking-wider mb-2">
+                      <p className="text-gray-400 text-[11px] uppercase tracking-wider mb-3">
                         Price Breakdown
                       </p>
-                      <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Ticket Total</span>
-                          <span>₹{booking.ticket_total.toFixed(2)}</span>
-                        </div>
-                        {booking.ticket_discount_amount > 0 && (
+                      
+                      {/* Ticket Breakdown */}
+                      <div className="bg-white/5 rounded-lg p-3 mb-3">
+                        <p className="text-gray-300 text-xs font-semibold mb-2 uppercase tracking-wider">
+                          Ticket
+                        </p>
+                        <div className="space-y-1.5 text-sm">
                           <div className="flex justify-between">
-                            <span className="text-gray-400">Discount</span>
-                            <span className="text-green-400">
-                              -₹{booking.ticket_discount_amount.toFixed(2)}
-                            </span>
+                            <span className="text-gray-400">Original Amount</span>
+                            <span>₹{booking.ticket_original ? booking.ticket_original.toFixed(2) : "0.00"}</span>
                           </div>
-                        )}
+                          {booking.total_rebate_amount > 0 && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Rebate</span>
+                              <span className="text-green-400">
+                                -₹{booking.total_rebate_amount.toFixed(2)}
+                              </span>
+                            </div>
+                          )}
+                          {booking.ticket_discount_amount > 0 && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Discount</span>
+                              <span className="text-green-400">
+                                -₹{booking.ticket_discount_amount.toFixed(2)}
+                              </span>
+                            </div>
+                          )}
+                          {booking.ticket_redeem_amount > 0 && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Redeemed</span>
+                              <span className="text-green-400">
+                                -₹{booking.ticket_redeem_amount.toFixed(2)}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex justify-between border-t border-white/10 pt-1.5 font-semibold text-orange-400">
+                            <span>Ticket Subtotal</span>
+                            <span>₹{booking.ticket_total.toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Food Breakdown */}
+                      {totalFoodAmount > 0 && (
+                        <div className="bg-white/5 rounded-lg p-3 mb-3">
+                          <p className="text-gray-300 text-xs font-semibold mb-2 uppercase tracking-wider">
+                            Food & Beverages
+                          </p>
+                          <div className="space-y-1.5 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Original Amount</span>
+                              <span>₹{booking.food_bookings && booking.food_bookings.length > 0 && booking.food_bookings[0].food_original ? booking.food_bookings[0].food_original.toFixed(2) : totalFoodAmount.toFixed(2)}</span>
+                            </div>
+                            {booking.food_bookings && booking.food_bookings.length > 0 && booking.food_bookings[0].food_redeem_amount > 0 && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-400">Redeemed</span>
+                                <span className="text-green-400">
+                                  -₹{booking.food_bookings[0].food_redeem_amount.toFixed(2)}
+                                </span>
+                              </div>
+                            )}
+                            {booking.food_bookings && booking.food_bookings.length > 0 && booking.food_bookings[0].discount_amount > 0 && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-400">Discount</span>
+                                <span className="text-green-400">
+                                  -₹{booking.food_bookings[0].discount_amount.toFixed(2)}
+                                </span>
+                              </div>
+                            )}
+                            <div className="flex justify-between border-t border-white/10 pt-1.5 font-semibold text-orange-400">
+                              <span>Food Subtotal</span>
+                              <span>₹{totalFoodAmount.toFixed(2)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Convenience Fee & Total */}
+                      <div className="space-y-1.5 text-sm">
                         <div className="flex justify-between">
                           <span className="text-gray-400">Convenience Fee</span>
                           <span>₹{booking.convenience_fee.toFixed(2)}</span>
                         </div>
-                        {totalFoodAmount > 0 && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">
-                              Food & Beverages
-                            </span>
-                            <span>₹{totalFoodAmount.toFixed(2)}</span>
-                          </div>
-                        )}
-                        <div className="flex justify-between border-t border-white/10 pt-2 font-bold text-orange-400">
+                        <div className="flex justify-between border-t border-white/10 pt-2 font-bold text-orange-400 text-base">
                           <span>Grand Total</span>
                           <span>₹{booking.grand_total.toFixed(2)}</span>
                         </div>
